@@ -45,6 +45,14 @@
       cloneable: true
 
 - type: trait
+  id: Monochromacy
+  name: trait-monochromacy-name
+  description: trait-monochromacy-desc
+  category: Disabilities
+  components:
+  - type: BlackAndWhiteOverlay
+
+- type: trait
   id: Muted
   name: trait-muted-name
   description: trait-muted-desc
@@ -72,6 +80,7 @@
   id: WheelchairBound
   name: trait-wheelchair-bound-name
   description: trait-wheelchair-bound-desc
+  category: Disabilities
   blacklist:
     components:
       - BorgChassis
@@ -79,7 +88,7 @@
     - type: BuckleOnMapInit
       prototype: VehicleWheelchair
     - type: LegsParalyzed
-    
+
 - type: trait
   id: PainNumbness
   name: trait-painnumbness-name
@@ -87,3 +96,20 @@
   category: Disabilities
   components:
   - type: PainNumbness
+
+- type: trait
+  id: Hemophilia
+  name: trait-hemophilia-name
+  description: trait-hemophilia-desc
+  category: Disabilities
+  components:
+  - type: Hemophilia
+
+- type: trait
+  id: ImpairedMobility
+  name: trait-impaired-mobility-name
+  description: trait-impaired-mobility-desc
+  traitGear: OffsetCane
+  category: Disabilities
+  components:
+    - type: ImpairedMobility

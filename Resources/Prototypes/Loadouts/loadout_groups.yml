@@ -44,6 +44,12 @@
   - ClothingNeckTransPin
   - ClothingNeckAutismPin
   - ClothingNeckGoldAutismPin
+  - OffsetCane
+  - OffsetCaneWood
+  - OffsetCaneClown
+  - OffsetCaneMime
+  - OffsetCaneNT
+  - Cane
   - TowelColorBlack
   - TowelColorDarkBlue
   - TowelColorDarkGreen
@@ -63,10 +69,11 @@
   - CDDogtags # CD
   - LunchboxBlue # CD
   - LunchboxYellow # CD
-  - Cane # CD
   - MedCrutchesForearm # CD
   - GoldRing # CD
   - SilverRing # CD
+  - SpaceCash10 # CD
+  - SpaceCash100 # CD
 
 - type: loadoutGroup
   id: Glasses
@@ -383,6 +390,17 @@
   minLimit: 0
   loadouts:
   - ChaplainNeck
+
+- type: loadoutGroup
+  id: ChaplainBible
+  name: loadout-group-chaplain-bible
+  minLimit: 1
+  loadouts:
+  - Bible
+  - BibleDruid
+  - BibleNanoTrasen
+  - BibleSatanic
+  - BibleTanakh
 
 - type: loadoutGroup
   id: JanitorHead
@@ -792,8 +810,14 @@
   - StationEngineerJumpsuit
   - StationEngineerJumpskirt
   - StationEngineerHazardsuit
+  - StationEngineerJumpsuitModern # CD
+  - StationEngineerJumpskirtModern # CD
+  - StationEngineerHazardsuitModern # CD
   - StationEngineerCasualsuit # CD
   - StationEngineerPants # CD
+  - StationEngineerJumpsuitEVA # CD
+  - StationEngineerJumpsuitMechanic # CD
+  - StationEngineerJumpskirtMechanic # CD
   # - SeniorEngineerJumpsuit
   # - SeniorEngineerJumpskirt
 
@@ -834,6 +858,8 @@
   loadouts:
   - AtmosphericTechnicianJumpsuit
   - AtmosphericTechnicianJumpskirt
+  - AtmosphericTechnicianJumpsuitModern # CD
+  - AtmosphericTechnicianJumpskirtModern # CD
   - AtmosphericTechnicianHazardsuit # CD
   - AtmosphericTechnicianJumpsuitCasual
 
@@ -1388,6 +1414,7 @@
   loadouts:
   - MedicalHud
   - MedicalEyePatchHud
+  - MedicalVisorHud #CD Addition
   - Glasses
   - GlassesJamjar
   - GlassesJensen

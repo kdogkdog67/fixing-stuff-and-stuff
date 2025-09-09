@@ -45,12 +45,9 @@ public abstract class SharedStorageSystem : EntitySystem
     [Dependency] private   readonly SharedInteractionSystem _interactionSystem = default!;
     [Dependency] private   readonly SharedPopupSystem _popupSystem = default!;
     [Dependency] private   readonly SharedHandsSystem _sharedHandsSystem = default!;
-    [Dependency] private   readonly SharedInteractionSystem _sharedInteractionSystem = default!;
-    [Dependency] private   readonly ActionBlockerSystem _actionBlockerSystem = default!;
     [Dependency] private   readonly SharedAppearanceSystem _appearance = default!;
     [Dependency] protected readonly SharedAudioSystem Audio = default!;
     [Dependency] private   readonly SharedCombatModeSystem _combatMode = default!;
-    [Dependency] protected readonly SharedTransformSystem _transform = default!;
     [Dependency] private   readonly SharedStackSystem _stack = default!;
     [Dependency] private   readonly SharedUserInterfaceSystem _ui = default!;
     [Dependency] protected readonly UseDelaySystem UseDelay = default!;
@@ -226,6 +223,42 @@ public abstract class SharedStorageSystem : EntitySystem
                 new("/Textures/Interface/VerbIcons/open.svg.192dpi.png"));
         }
         args.Verbs.Add(verb);
+    }
+
+    /// <summary>
+    /// Copy this component's datafields from one entity to another.
+    /// This can't use CopyComp because we don't want to copy the references to the items inside the storage.
+    /// <summary>
+    public void CopyComponent(Entity<StorageComponent?> source, EntityUid target)
+    {
+        if (!Resolve(source, ref source.Comp))
+            return;
+
+        var targetComp = EnsureComp<StorageComponent>(target);
+        targetComp.QuickInsert = source.Comp.QuickInsert;
+        targetComp.QuickInsertCooldown = source.Comp.QuickInsertCooldown;
+        targetComp.OpenUiCooldown = source.Comp.OpenUiCooldown;
+        targetComp.ClickInsert = source.Comp.ClickInsert;
+        targetComp.OpenOnActivate = source.Comp.OpenOnActivate;
+        targetComp.AreaInsert = source.Comp.AreaInsert;
+        targetComp.AreaInsertRadius = source.Comp.AreaInsertRadius;
+        targetComp.Whitelist = source.Comp.Whitelist;
+        targetComp.Blacklist = source.Comp.Blacklist;
+        targetComp.StorageInsertSound = source.Comp.StorageInsertSound;
+        targetComp.StorageRemoveSound = source.Comp.StorageRemoveSound;
+        targetComp.StorageOpenSound = source.Comp.StorageOpenSound;
+        targetComp.StorageCloseSound = source.Comp.StorageCloseSound;
+        // targetComp.DefaultStorageOrientation = source.Comp.DefaultStorageOrientation;
+        targetComp.HideStackVisualsWhenClosed = source.Comp.HideStackVisualsWhenClosed;
+        // targetComp.SilentStorageUserTag = source.Comp.SilentStorageUserTag;
+        targetComp.ShowVerb = source.Comp.ShowVerb;
+
+        // UpdateOccupied((target, targetComp));
+        Dirty(target, targetComp);
+
+        // var targetUI = EnsureComp<UserInterfaceComponent>(target);
+
+        // UI.SetUi((target, targetUI), StorageComponent.StorageUiKey.Key, new InterfaceData("StorageBoundUserInterface"));
     }
 
     /// <summary>
@@ -429,7 +462,7 @@ public abstract class SharedStorageSystem : EntitySystem
 
             var position = TransformSystem.ToCoordinates(
                 xform.ParentUid.IsValid() ? xform.ParentUid : uid,
-                new MapCoordinates(_transform.GetWorldPosition(targetXform), targetXform.MapID)
+                new MapCoordinates(TransformSystem.GetWorldPosition(targetXform), targetXform.MapID)
             );
 
             var angle = targetXform.LocalRotation;
@@ -463,7 +496,7 @@ public abstract class SharedStorageSystem : EntitySystem
 
     private void OnDestroy(EntityUid uid, StorageComponent storageComp, DestructionEventArgs args)
     {
-        var coordinates = _transform.GetMoverCoordinates(uid);
+        var coordinates = TransformSystem.GetMoverCoordinates(uid);
 
         // Being destroyed so need to recalculate.
         _containerSystem.EmptyContainer(storageComp.Container, destination: coordinates);
@@ -494,7 +527,7 @@ public abstract class SharedStorageSystem : EntitySystem
             return;
         }
 
-        if (!_actionBlockerSystem.CanInteract(player, entity) || !storageComp.Container.Contains(entity))
+        if (!_actionBlocker.CanInteract(player, entity) || !storageComp.Container.Contains(entity))
             return;
 
         // Does the player have hands?
@@ -502,7 +535,8 @@ public abstract class SharedStorageSystem : EntitySystem
             return;
 
         // If the user's active hand is empty, try pick up the item.
-        if (hands.ActiveHandEntity == null)
+
+        if (!_sharedHandsSystem.TryGetActiveItem(player, out var activeItem))
         {
             if (_sharedHandsSystem.TryPickupAnyHand(player, entity, handsComp: hands)
                 && storageComp.StorageRemoveSound != null)
@@ -513,7 +547,7 @@ public abstract class SharedStorageSystem : EntitySystem
         }
 
         // Else, interact using the held item
-        _interactionSystem.InteractUsing(player, hands.ActiveHandEntity.Value, entity, Transform(entity).Coordinates, checkCanInteract: false);
+        _interactionSystem.InteractUsing(player, activeItem.Value, entity, Transform(entity).Coordinates, checkCanInteract: false);
     }
 
     private void OnInsertItemMessage(StorageComponent.StorageInsertItemMessage msg, EntitySessionEventArgs args)
@@ -736,10 +770,10 @@ public abstract class SharedStorageSystem : EntitySystem
     /// <returns>true if inserted, false otherwise</returns>
     public bool PlayerInsertHeldEntity(EntityUid uid, EntityUid player, StorageComponent? storageComp = null)
     {
-        if (!Resolve(uid, ref storageComp) || !TryComp(player, out HandsComponent? hands) || hands.ActiveHandEntity == null)
+        if (!Resolve(uid, ref storageComp) || !TryComp(player, out HandsComponent? hands) || !_sharedHandsSystem.TryGetActiveItem(player, out var activeItem))
             return false;
 
-        var toInsert = hands.ActiveHandEntity;
+        var toInsert = activeItem;
 
         if (!CanInsert(uid, toInsert.Value, out var reason, storageComp))
         {
@@ -747,7 +781,7 @@ public abstract class SharedStorageSystem : EntitySystem
             return false;
         }
 
-        if (!_sharedHandsSystem.TryDrop(player, toInsert.Value, handsComp: hands))
+        if (!_sharedHandsSystem.TryDrop(player, toInsert.Value))
         {
             _popupSystem.PopupClient(Loc.GetString("comp-storage-cant-drop", ("entity", toInsert.Value)), uid, player);
             return false;
@@ -764,7 +798,7 @@ public abstract class SharedStorageSystem : EntitySystem
     /// <returns>true if inserted, false otherwise</returns>
     public bool PlayerInsertEntityInWorld(EntityUid uid, EntityUid player, EntityUid toInsert, StorageComponent? storageComp = null, bool playSound = true)
     {
-        if (!Resolve(uid, ref storageComp) || !_sharedInteractionSystem.InRangeUnobstructed(player, uid))
+        if (!Resolve(uid, ref storageComp) || !_interactionSystem.InRangeUnobstructed(player, uid))
             return false;
 
         if (!Insert(uid, toInsert, out _, user: player, storageComp, playSound: playSound))

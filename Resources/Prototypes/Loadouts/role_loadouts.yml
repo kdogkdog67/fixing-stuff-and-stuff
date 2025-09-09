@@ -131,6 +131,7 @@
   - ChaplainJumpsuit
   - CommonBackpack
   - ChaplainOuterClothing
+  - ChaplainBible
   - Glasses
   - Survival
   - Trinkets
@@ -256,6 +257,7 @@
   groups:
   - GroupTankHarness
   - ChiefEngineerHead
+  - EngineeringEyewear # CD
   - ChiefEngineerJumpsuit
   - StationEngineerBackpack
   - ChiefEngineerNeck
@@ -280,6 +282,7 @@
   groups:
   - GroupTankHarness
   - StationEngineerHead
+  - EngineeringEyewear # CD
   - StationEngineerJumpsuit
   - StationEngineerBackpack
   - StationEngineerOuterClothing
@@ -293,6 +296,7 @@
   id: JobAtmosphericTechnician
   groups:
   - GroupTankHarness
+  - EngineeringEyewear # CD
   - AtmosphericTechnicianJumpsuit
   - AtmosphericTechnicianBackpack
   - AtmosphericTechnicianOuterClothing

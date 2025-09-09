@@ -648,7 +648,7 @@ public abstract class SharedActionsSystem : EntitySystem
         return AddAction(performer, ref actionId, out _, actionPrototypeId, container, component);
     }
 
-    /// <inheritdoc cref="AddAction(Robust.Shared.GameObjects.EntityUid,ref System.Nullable{Robust.Shared.GameObjects.EntityUid},string?,Robust.Shared.GameObjects.EntityUid,Content.Shared.Actions.ActionsComponent?)"/>
+    /// <inheritdoc cref="AddAction(Robust.Shared.GameObjects.EntityUid,ref System.Nullable{Robust.Shared.GameObjects.EntityUid},string?,Robust.Shared.GameObjects.EntityUid,ActionsComponent?)"/>
     public bool AddAction(EntityUid performer,
         [NotNullWhen(true)] ref EntityUid? actionId,
         [NotNullWhen(true)] out BaseActionComponent? action,
@@ -1013,6 +1013,20 @@ public abstract class SharedActionsSystem : EntitySystem
     public bool IsCooldownActive(BaseActionComponent action, TimeSpan? curTime = null)
     {
         // TODO: Check for charge recovery timer
+        curTime ??= GameTiming.CurTime;
         return action.Cooldown.HasValue && action.Cooldown.Value.End > curTime;
+    }
+
+    /// <summary>
+    /// Marks the action as temporary.
+    /// Temporary actions get deleted upon being removed from an entity.
+    /// </summary>
+    public void SetTemporary(Entity<InstantActionComponent?> ent, bool temporary)
+    {
+        if (!Resolve(ent.Owner, ref ent.Comp, false))
+            return;
+
+        ent.Comp.Temporary = temporary;
+        Dirty(ent);
     }
 }
